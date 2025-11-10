@@ -1,0 +1,2986 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Flight Schedule Manager</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    html, body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      height: 100%;
+      color: #1e293b;
+      -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 12px;
+      width: 100%;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 24px 20px;
+      background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #5eead4 100%);
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(13, 148, 136, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(94, 234, 212, 0.2) 0%, rgba(45, 212, 191, 0.15) 100%);
+      pointer-events: none;
+    }
+    
+    .header h1 {
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.025em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header-icon {
+      font-size: 36px;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .month-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 12px 0;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .month-selector select {
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      color: #1e293b;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .month-selector select:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .month-selector span {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .last-updated {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      margin-top: 16px;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+    }
+    
+    .top-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+    
+    .secure-portal-btn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 25px rgba(209, 213, 219, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .secure-portal-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .secure-portal-btn:hover::before {
+      left: 100%;
+    }
+    
+    .secure-portal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(209, 213, 219, 0.4);
+    }
+    
+    .secure-portal-btn:active {
+      transform: translateY(0);
+    }
+    
+    .logout-btn {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 24px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: slideUp 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .modal-content h2 {
+      margin: 0 0 32px 0;
+      color: #1e293b;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #374151;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      min-height: 56px;
+      transition: all 0.3s ease;
+      background: #f9fafb;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #14b8a6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+    }
+    
+    .modal-buttons button {
+      flex: 1;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+      box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(20, 184, 166, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 2px solid #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab {
+      padding: 16px 24px;
+      background: transparent;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    
+    .tab.active {
+      color: #1e293b;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tab:hover:not(.active) {
+      color: #475569;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .calendar-view {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .filters {
+      margin-bottom: 12px;
+      padding: 8px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .legend-section {
+      background: white;
+      padding: 6px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      border: 1px solid #f1f5f9;
+    }
+    
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 6px;
+    }
+    
+    .filter-group {
+      background: white;
+      padding: 6px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      border: 1px solid #f1f5f9;
+      transition: all 0.3s ease;
+    }
+    
+    .filter-group:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filter-group label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .filter-group select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 11px;
+      background: #f9fafb;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .filter-group select:focus {
+      outline: none;
+      border-color: #14b8a6;
+      background: white;
+      box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.1);
+    }
+    
+    .form-group select {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      min-height: 56px;
+      background: #f9fafb;
+      transition: all 0.3s ease;
+    }
+    
+    .form-group select:focus {
+      outline: none;
+      border-color: #14b8a6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+    
+    .calendar-navigation {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .nav-btn {
+      padding: 8px 12px;
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(20, 184, 166, 0.3);
+      min-width: 80px;
+      justify-content: center;
+    }
+    
+    .nav-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+    }
+    
+    .nav-btn:disabled {
+      background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .current-date {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      text-align: center;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      flex: 1;
+      max-width: 400px;
+    }
+    
+    .calendar-grid {
+      overflow: auto;
+      margin-bottom: 16px;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid #e2e8f0;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+      background: white;
+    }
+    
+    .calendar-table th {
+      background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+      color: white;
+      padding: 20px 12px;
+      text-align: center;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border: 1px solid #2dd4bf;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .calendar-table td {
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      vertical-align: top;
+      min-height: 100px;
+      position: relative;
+      background: white;
+      transition: background-color 0.2s ease;
+    }
+    
+    .calendar-table td:hover {
+      background: #f8fafc;
+    }
+    
+    .time-slot {
+      background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+      font-weight: 700;
+      color: #0f766e;
+      text-align: center;
+      white-space: nowrap;
+      position: sticky;
+      left: 0;
+      z-index: 15;
+      border-right: 3px solid #14b8a6;
+      min-width: 140px;
+      width: 140px;
+      padding: 16px 12px;
+      box-shadow: 4px 0 12px rgba(0,0,0,0.1);
+      font-size: 13px;
+    }
+    
+    .calendar-table td.time-slot {
+      background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+      position: sticky;
+      left: 0;
+      z-index: 15;
+    }
+    
+    .calendar-table th.time-slot {
+      z-index: 20;
+      background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+      color: white;
+      border-right: 3px solid #2dd4bf;
+    }
+    
+    .flight-column {
+      width: 180px;
+      min-width: 180px;
+    }
+    
+    .today-column {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+      border: 2px solid #dee2e6 !important;
+    }
+    
+    .today-header {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    }
+    
+    .flight-item {
+      padding: 8px 6px;
+      margin: 3px 0;
+      border-radius: 8px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      line-height: 1.2;
+      word-wrap: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+      text-align: center;
+      min-height: 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .flight-item:hover {
+      transform: translateY(-2px) scale(1.05);
+      z-index: 100;
+      position: relative;
+      white-space: normal;
+      overflow: visible;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      font-size: 12px;
+      border-radius: 12px;
+    }
+    
+    .flight-regular { 
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+      color: #1e293b; 
+      border: 1px solid #cbd5e1;
+    }
+    .flight-lanexang { 
+      background: linear-gradient(135deg, #4b5563 0%, #374151 100%); 
+      color: white; 
+    }
+    .flight-skyways { 
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+      color: white; 
+    }
+    .flight-lao { 
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
+      color: white; 
+    }
+    .flight-reschedule { 
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); 
+      color: #1e293b; 
+      font-weight: 700;
+      position: relative;
+    }
+    .flight-reschedule::before {
+      content: '🔄';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+    }
+    .flight-charter { 
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+      color: white; 
+      position: relative;
+    }
+    .flight-charter::before {
+      content: '🛩️';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+    }
+    .flight-additional { 
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); 
+      color: white; 
+      position: relative;
+    }
+    .flight-additional::before {
+      content: '➕';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+    }
+    .flight-cancelled { 
+      background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); 
+      color: white; 
+      opacity: 0.7;
+      text-decoration: line-through;
+      position: relative;
+    }
+    .flight-cancelled::before {
+      content: '❌';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+    }
+    
+    .updates-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-radius: 16px;
+      border: 1px solid #f59e0b;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+    
+    .updates-section h3 {
+      margin: 0 0 16px 0;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      justify-content: center;
+    }
+    
+    .updates-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .updates-date-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+    }
+    
+    .updates-date-controls label {
+      font-weight: 600;
+      color: #92400e;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    
+    .updates-date-controls input {
+      padding: 6px 8px;
+      border: 1px solid #f59e0b;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #fef3c7;
+      color: #92400e;
+      min-width: 120px;
+    }
+    
+    .updates-date-controls button {
+      padding: 6px 12px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+    }
+    
+    .updates-date-controls button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    
+    .updates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    
+    .update-category {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+    
+    .update-category:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .update-category h4 {
+      margin: 0 0 12px 0;
+      color: #1e293b;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .update-item {
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 8px;
+      margin: 6px 0;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+      line-height: 1.4;
+    }
+    
+    .update-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    
+    .update-item-main {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    
+    .update-item-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .update-item-content {
+      flex: 1;
+    }
+    
+    .update-item-flight {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 13px;
+    }
+    
+    .update-item-time {
+      font-weight: 600;
+      color: #059669;
+      font-size: 12px;
+    }
+    
+    .update-item-details {
+      margin-left: 20px;
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 400;
+      margin-top: 4px;
+      padding: 4px 8px;
+      background: rgba(100, 116, 139, 0.1);
+      border-radius: 4px;
+    }
+    
+    .no-updates {
+      text-align: center;
+      padding: 30px 20px;
+      color: #92400e;
+      grid-column: 1 / -1;
+    }
+    
+    .no-updates-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .no-updates-text {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .add-flight-form {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-section {
+      margin-bottom: 32px;
+      padding: 24px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .form-section h3 {
+      margin: 0 0 20px 0;
+      color: #1e293b;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .flight-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .flight-column-container {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 20px;
+      padding: 20px;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .column-header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+    
+    .column-header h3 {
+      margin: 0;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .flight-column-container .form-section {
+      margin-bottom: 16px;
+      padding: 16px;
+      background: white;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .flight-column-container .form-section h4 {
+      margin: 0 0 12px 0;
+      color: #1e293b;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .radio-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .radio-group label:hover {
+      border-color: #14b8a6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.1);
+    }
+    
+    .radio-group input[type="radio"]:checked + label,
+    .radio-group label:has(input[type="radio"]:checked) {
+      border-color: #14b8a6;
+      background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+      color: #0f766e;
+    }
+    
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 10px;
+      border: 2px solid #e5e7eb;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    .checkbox-group label:hover {
+      border-color: #14b8a6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.1);
+    }
+    
+    .checkbox-group input[type="checkbox"]:checked + label,
+    .checkbox-group label:has(input[type="checkbox"]:checked) {
+      border-color: #14b8a6;
+      background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+      color: #0f766e;
+    }
+    
+    .time-inputs {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .time-inputs input {
+      flex: 1;
+      padding: 10px 8px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      background: #f9fafb;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      font-size: 13px;
+      min-width: 0;
+      width: 100%;
+    }
+    
+    .time-inputs input:focus {
+      outline: none;
+      border-color: #14b8a6;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+    
+    .time-inputs span {
+      font-weight: 600;
+      color: #64748b;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 20px;
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .submit-btn:hover:not(:disabled)::before {
+      left: 100%;
+    }
+    
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(20, 184, 166, 0.4);
+    }
+    
+    .submit-btn:disabled {
+      background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .success-message {
+      display: none;
+      padding: 20px;
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+      border-radius: 16px;
+      margin-top: 20px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3);
+      animation: slideIn 0.3s ease;
+    }
+    
+    .success-message.show {
+      display: block;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .reschedule-form, .special-flight-form {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      padding: 24px;
+      border-radius: 16px;
+      margin-top: 24px;
+      border: 1px solid #f59e0b;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+    }
+    
+    .error-message {
+      color: #dc2626;
+      font-size: 14px;
+      margin-top: 8px;
+      font-weight: 600;
+      padding: 8px 12px;
+      background: #fef2f2;
+      border-radius: 8px;
+      border: 1px solid #fecaca;
+    }
+    
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced Mobile Compatibility */
+    @media (max-width: 768px) {
+      .container {
+        padding: 8px;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      
+      .header {
+        padding: 20px 16px;
+        margin-bottom: 12px;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+        flex-direction: column;
+        gap: 8px;
+        line-height: 1.2;
+      }
+      
+      .header-icon {
+        font-size: 28px;
+      }
+      
+      .month-selector {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .month-selector select {
+        padding: 10px 14px;
+        font-size: 14px;
+        width: 100%;
+        max-width: 200px;
+      }
+      
+      .month-selector span {
+        font-size: 18px;
+      }
+      
+      .last-updated {
+        font-size: 14px;
+        text-align: center;
+      }
+      
+      .top-controls {
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      
+      .secure-portal-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .tabs {
+        padding: 6px;
+        gap: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .tab {
+        padding: 12px 16px;
+        font-size: 14px;
+        white-space: nowrap;
+        min-width: auto;
+      }
+      
+      .filters {
+        padding: 12px;
+        margin-bottom: 16px;
+      }
+      
+      .filters-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .filter-group {
+        padding: 12px;
+      }
+      
+      .filter-group label {
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+      
+      .filter-group select {
+        padding: 8px 10px;
+        font-size: 12px;
+        min-height: auto;
+      }
+      
+      .legend-section {
+        padding: 12px;
+      }
+      
+      .legend-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+      }
+      
+      .calendar-navigation {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+      }
+      
+      .nav-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+        min-width: auto;
+        width: 100%;
+      }
+      
+      .current-date {
+        font-size: 16px;
+        padding: 12px 16px;
+        text-align: center;
+        order: -1;
+      }
+      
+      .calendar-grid {
+        margin-bottom: 20px;
+        border-radius: 12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .calendar-table {
+        min-width: 600px;
+        font-size: 12px;
+      }
+      
+      .calendar-table th {
+        padding: 12px 8px;
+        font-size: 11px;
+        min-width: 80px;
+      }
+      
+      .calendar-table td {
+        padding: 8px 6px;
+        min-height: 80px;
+      }
+      
+      .time-slot {
+        min-width: 100px;
+        width: 100px;
+        padding: 12px 8px;
+        font-size: 11px;
+      }
+      
+      .flight-column {
+        width: 120px;
+        min-width: 120px;
+      }
+      
+      .flight-item {
+        padding: 6px 4px;
+        margin: 2px 0;
+        font-size: 10px;
+        min-height: 32px;
+        border-radius: 6px;
+      }
+      
+      .flight-item:hover {
+        font-size: 11px;
+        transform: translateY(-1px) scale(1.02);
+      }
+      
+      .modal-content {
+        padding: 24px 20px;
+        margin: 20px;
+        max-width: 90%;
+        border-radius: 16px;
+      }
+      
+      .modal-content h2 {
+        font-size: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      .form-group input {
+        padding: 14px 16px;
+        font-size: 16px;
+        min-height: 50px;
+      }
+      
+      .modal-buttons {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .modal-buttons button {
+        padding: 14px 20px;
+        font-size: 16px;
+      }
+      
+      .add-flight-form {
+        padding: 20px 16px;
+        border-radius: 16px;
+      }
+      
+      .form-section {
+        margin-bottom: 24px;
+        padding: 16px;
+        border-radius: 12px;
+      }
+      
+      .form-section h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+      }
+      
+      .form-section h4 {
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .radio-group, .checkbox-group {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .radio-group label, .checkbox-group label {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+      
+      .time-inputs {
+        flex-direction: row;
+        gap: 6px;
+      }
+      
+      .time-inputs input {
+        padding: 10px 8px;
+        font-size: 14px;
+        min-width: 0;
+      }
+      
+      .time-inputs span {
+        font-size: 12px;
+      }
+      
+      .flight-columns {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .flight-column-container {
+        padding: 16px;
+        border-radius: 16px;
+      }
+      
+      .column-header {
+        padding: 12px;
+        margin-bottom: 16px;
+        border-radius: 12px;
+      }
+      
+      .column-header h3 {
+        font-size: 16px;
+      }
+      
+      .submit-btn {
+        padding: 16px 20px;
+        font-size: 16px;
+        border-radius: 12px;
+      }
+      
+      .updates-section {
+        padding: 16px;
+        margin-top: 16px;
+        border-radius: 12px;
+      }
+      
+      .updates-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+      
+      .updates-section h3 {
+        font-size: 20px;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      
+      .updates-date-controls {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+        padding: 12px;
+      }
+      
+      .updates-date-controls input {
+        min-width: auto;
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      
+      .updates-date-controls button {
+        padding: 10px 16px;
+        font-size: 14px;
+        width: 100%;
+      }
+      
+      .updates-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .update-category {
+        padding: 16px;
+        border-radius: 10px;
+      }
+      
+      .update-category h4 {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+      
+      .update-item {
+        padding: 12px 14px;
+        font-size: 13px;
+        border-radius: 6px;
+      }
+      
+      .update-item-flight {
+        font-size: 14px;
+      }
+      
+      .update-item-time {
+        font-size: 13px;
+      }
+      
+      .update-item-details {
+        font-size: 11px;
+        margin-left: 16px;
+        padding: 6px 10px;
+      }
+      
+      .no-updates {
+        padding: 40px 20px;
+      }
+      
+      .no-updates-icon {
+        font-size: 32px;
+      }
+      
+      .no-updates-text {
+        font-size: 16px;
+      }
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 480px) {
+      .container {
+        padding: 4px;
+      }
+      
+      .header {
+        padding: 16px 12px;
+      }
+      
+      .header h1 {
+        font-size: 20px;
+      }
+      
+      .calendar-table {
+        min-width: 500px;
+      }
+      
+      .calendar-table th {
+        padding: 8px 4px;
+        font-size: 10px;
+        min-width: 70px;
+      }
+      
+      .calendar-table td {
+        padding: 6px 4px;
+        min-height: 70px;
+      }
+      
+      .time-slot {
+        min-width: 90px;
+        width: 90px;
+        padding: 8px 4px;
+        font-size: 10px;
+      }
+      
+      .flight-column {
+        width: 100px;
+        min-width: 100px;
+      }
+      
+      .flight-item {
+        padding: 4px 2px;
+        font-size: 9px;
+        min-height: 28px;
+      }
+      
+      .flight-item:hover {
+        font-size: 10px;
+      }
+      
+      .modal-content {
+        padding: 20px 16px;
+        margin: 10px;
+      }
+      
+      .form-section {
+        padding: 12px;
+      }
+      
+      .updates-section {
+        padding: 12px;
+      }
+      
+      .flight-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="header">
+    <h1 id="airport-title"><span class="header-icon">✈️</span> Flight Schedule of Bokeo International Airport</h1>
+    <div class="month-selector"><select id="month-select"> <option value="November">November</option> <option value="December">December</option> </select> <span>2025</span>
+    </div>
+    <div class="last-updated" id="last-updated">
+     Latest Updated on: --
+    </div>
+   </div>
+   <div class="top-controls"><button class="secure-portal-btn" id="portal-btn"> <span>🔐</span> Secure Portal </button> <button class="secure-portal-btn logout-btn" id="logout-btn" style="display: none;"> <span>🚪</span> Logout </button>
+   </div>
+   <div class="tabs" id="tabs-container"><button class="tab active" data-tab="calendar"> <span>📅</span> Calendar View </button> <button class="tab" data-tab="add-flight" id="add-flight-tab" style="display: none;"> <span>➕</span> Add Flight </button> <button class="tab" data-tab="special-flight" id="special-flight-tab" style="display: none;"> <span>✨</span> Special Flight </button>
+   </div>
+   <div class="tab-content active" id="calendar-tab">
+    <div class="calendar-view">
+     <div class="filters">
+      <div class="filters-row">
+       <div class="filter-group"><label> <span>🛣️</span> Filter by Route </label> <select id="filter-route" multiple size="4"> <option value="">All Routes</option> <option value="VTE-BOR">🛫 VTE → BOR (Vientiane to Bokeo)</option> <option value="BOR-VTE">🛬 BOR → VTE (Bokeo to Vientiane)</option> <option value="BOR-LPQ">🛫 BOR → LPQ (Bokeo to Luang Prabang)</option> <option value="LPQ-BOR">🛬 LPQ → BOR (Luang Prabang to Bokeo)</option> </select>
+       </div>
+       <div class="filter-group"><label> <span>🏢</span> Filter by Airline </label> <select id="filter-airline" multiple size="4"> <option value="">All Airlines</option> <option value="Lanexang Airways International">✈️ Lanexang Airways</option> <option value="Lao Skyways">✈️ Lao Skyways</option> <option value="Lao Airlines">✈️ Lao Airlines</option> </select>
+       </div>
+       <div class="filter-group"><label> <span>📆</span> Filter by Day </label> <select id="filter-day" multiple size="4"> <option value="">All Days</option> <option value="Mon">📅 Monday</option> <option value="Tue">📅 Tuesday</option> <option value="Wed">📅 Wednesday</option> <option value="Thu">📅 Thursday</option> <option value="Fri">📅 Friday</option> <option value="Sat">📅 Saturday</option> <option value="Sun">📅 Sunday</option> </select>
+       </div>
+      </div>
+      <div class="legend-section">
+       <h4 style="margin: 0 0 6px 0; color: #1e293b; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px;"><span>📋</span> Legend</h4>
+       <div class="legend-grid">
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 10px;">
+         <div style="width: 10px; height: 10px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 2px; position: relative;"><span style="position: absolute; top: -1px; right: -1px; font-size: 4px;">🔄</span>
+         </div><span>Reschedule</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 10px;">
+         <div style="width: 10px; height: 10px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 2px; position: relative;"><span style="position: absolute; top: -1px; right: -1px; font-size: 4px;">🛩️</span>
+         </div><span>Charter</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 10px;">
+         <div style="width: 10px; height: 10px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 2px; position: relative;"><span style="position: absolute; top: -1px; right: -1px; font-size: 4px;">➕</span>
+         </div><span>Additional</span>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="calendar-navigation"><button class="nav-btn" id="prev-btn"> <span>◀</span> Previous </button>
+      <div class="current-date" id="current-date-display">
+       Loading...
+      </div><button class="nav-btn" id="next-btn"> <span>▶</span> Next </button>
+     </div>
+     <div class="calendar-grid">
+      <table class="calendar-table" id="calendar-table">
+       <thead id="calendar-header">
+       </thead>
+       <tbody id="calendar-body">
+       </tbody>
+      </table>
+     </div>
+     <div class="updates-section" id="updates-section" style="display: none;">
+      <div class="updates-header">
+       <h3 id="updates-title"><span>⚠️</span> Today's Flight Updates</h3>
+       <div class="updates-date-controls"><label>View Updates for:</label> <input type="date" id="updates-date-picker"> <button id="today-btn">Today</button>
+       </div>
+      </div>
+      <div class="updates-grid" id="updates-content"></div>
+     </div>
+    </div>
+   </div>
+   <div class="tab-content" id="add-flight-tab-content">
+    <div class="add-flight-form">
+     <div class="form-section">
+      <h3><span>🏢</span> Select Airline</h3>
+      <div class="radio-group"><label> <input type="radio" name="airline" value="Lanexang Airways International"> Lanexang Airways International </label> <label> <input type="radio" name="airline" value="Lao Skyways"> Lao Skyways </label> <label> <input type="radio" name="airline" value="Lao Airlines"> Lao Airlines </label>
+      </div>
+     </div>
+     <div class="flight-columns">
+      <div class="flight-column-container">
+       <div class="column-header">
+        <h3><span>🛬</span> Arrival Flights</h3>
+       </div>
+       <div class="form-section">
+        <h4>Flight Code</h4>
+        <div class="form-row">
+         <div class="form-group"><label>Select Flight Code</label> <select id="arrival-flight-code-select"> <option value="">Select airline first</option> </select>
+         </div>
+         <div class="form-group"><label>Or Enter Custom Code</label> <input type="text" id="arrival-custom-flight-code" placeholder="e.g., 5A999">
+         </div>
+        </div>
+       </div>
+       <div class="form-section">
+        <h4>Route</h4>
+        <div class="radio-group"><label> <input type="radio" name="arrival-route" value="VTE-BOR"> VTE → BOR </label> <label> <input type="radio" name="arrival-route" value="LPQ-BOR"> LPQ → BOR </label>
+        </div>
+       </div>
+       <div class="form-section">
+        <h4>Flight Status</h4>
+        <div class="radio-group"><label> <input type="radio" name="arrival-status" value="Regular" checked> ✅ Regular </label>
+        </div>
+       </div>
+       <div class="form-section" id="arrival-regular-days-section">
+        <h4>Select Days (for Regular Flights)</h4>
+        <div class="checkbox-group"><label><input type="checkbox" name="arrival-days" value="Mon"> Mon</label> <label><input type="checkbox" name="arrival-days" value="Tue"> Tue</label> <label><input type="checkbox" name="arrival-days" value="Wed"> Wed</label> <label><input type="checkbox" name="arrival-days" value="Thu"> Thu</label> <label><input type="checkbox" name="arrival-days" value="Fri"> Fri</label> <label><input type="checkbox" name="arrival-days" value="Sat"> Sat</label> <label><input type="checkbox" name="arrival-days" value="Sun"> Sun</label>
+        </div>
+       </div>
+       <div class="form-section">
+        <h4>Flight Time</h4>
+        <div class="time-inputs"><input type="text" id="arrival-start-time" placeholder="08h:00mn"> <span>to</span> <input type="text" id="arrival-end-time" placeholder="10h:30mn">
+        </div>
+       </div>
+      </div>
+      <div class="flight-column-container">
+       <div class="column-header">
+        <h3><span>🛫</span> Departure Flights</h3>
+       </div>
+       <div class="form-section">
+        <h4>Flight Code</h4>
+        <div class="form-row">
+         <div class="form-group"><label>Select Flight Code</label> <select id="departure-flight-code-select"> <option value="">Select airline first</option> </select>
+         </div>
+         <div class="form-group"><label>Or Enter Custom Code</label> <input type="text" id="departure-custom-flight-code" placeholder="e.g., 5A999">
+         </div>
+        </div>
+       </div>
+       <div class="form-section">
+        <h4>Route</h4>
+        <div class="radio-group"><label> <input type="radio" name="departure-route" value="BOR-VTE"> BOR → VTE </label> <label> <input type="radio" name="departure-route" value="BOR-LPQ"> BOR → LPQ </label>
+        </div>
+       </div>
+       <div class="form-section">
+        <h4>Flight Status</h4>
+        <div class="radio-group"><label> <input type="radio" name="departure-status" value="Regular" checked> ✅ Regular </label>
+        </div>
+       </div>
+       <div class="form-section" id="departure-regular-days-section">
+        <h4>Select Days (for Regular Flights)</h4>
+        <div class="checkbox-group"><label><input type="checkbox" name="departure-days" value="Mon"> Mon</label> <label><input type="checkbox" name="departure-days" value="Tue"> Tue</label> <label><input type="checkbox" name="departure-days" value="Wed"> Wed</label> <label><input type="checkbox" name="departure-days" value="Thu"> Thu</label> <label><input type="checkbox" name="departure-days" value="Fri"> Fri</label> <label><input type="checkbox" name="departure-days" value="Sat"> Sat</label> <label><input type="checkbox" name="departure-days" value="Sun"> Sun</label>
+        </div>
+       </div>
+       <div class="form-section">
+        <h4>Flight Time</h4>
+        <div class="time-inputs"><input type="text" id="departure-start-time" placeholder="08h:00mn"> <span>to</span> <input type="text" id="departure-end-time" placeholder="10h:30mn">
+        </div>
+       </div>
+      </div>
+     </div><button class="submit-btn" id="add-flight-btn"> <span>➕</span> Add Flight to Calendar </button>
+     <div class="success-message" id="success-message">
+      ✓ Flight added successfully!
+     </div>
+    </div>
+   </div>
+   <div class="tab-content" id="special-flight-tab-content">
+    <div class="add-flight-form">
+     <div class="form-section">
+      <h3><span>🏢</span> Select Airline</h3>
+      <div class="radio-group"><label> <input type="radio" name="special-airline" value="Lanexang Airways International"> Lanexang Airways International </label> <label> <input type="radio" name="special-airline" value="Lao Skyways"> Lao Skyways </label> <label> <input type="radio" name="special-airline" value="Lao Airlines"> Lao Airlines </label>
+      </div>
+     </div>
+     <div class="form-section">
+      <h3><span>✨</span> Select Special Flight Type</h3>
+      <div class="radio-group"><label> <input type="radio" name="special-type" value="Reschedule"> 🔄 Reschedule </label> <label> <input type="radio" name="special-type" value="Charter"> 🛩️ Charter </label> <label> <input type="radio" name="special-type" value="Additional"> ➕ Additional </label>
+      </div>
+     </div>
+     <div class="reschedule-form" id="reschedule-form-special" style="display: none;">
+      <h3><span>🔄</span> Reschedule Details</h3>
+      <div class="flight-columns">
+       <div class="flight-column-container">
+        <div class="column-header">
+         <h3><span>🛬</span> Arrival Reschedule</h3>
+        </div>
+        <div class="form-section">
+         <h4>Flight Code</h4>
+         <div class="form-row">
+          <div class="form-group"><label>Select Flight Code</label> <select id="reschedule-arrival-flight-code-select"> <option value="">Select airline first</option> </select>
+          </div>
+          <div class="form-group"><label>Or Enter Custom Code</label> <input type="text" id="reschedule-arrival-custom-flight-code" placeholder="e.g., 5A999">
+          </div>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Route</h4>
+         <div class="radio-group"><label> <input type="radio" name="reschedule-arrival-route" value="VTE-BOR"> VTE → BOR </label> <label> <input type="radio" name="reschedule-arrival-route" value="LPQ-BOR"> LPQ → BOR </label>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Original Date</h4><input type="date" id="reschedule-arrival-original-date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px;">
+        </div>
+        <div class="form-section">
+         <h4>New Date</h4><input type="date" id="reschedule-arrival-new-date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px;">
+        </div>
+        <div class="form-section">
+         <h4>New Time</h4>
+         <div class="time-inputs"><input type="text" id="reschedule-arrival-start-time" placeholder="08h:00mn"> <span>to</span> <input type="text" id="reschedule-arrival-end-time" placeholder="10h:30mn">
+         </div>
+        </div>
+       </div>
+       <div class="flight-column-container">
+        <div class="column-header">
+         <h3><span>🛫</span> Departure Reschedule</h3>
+        </div>
+        <div class="form-section">
+         <h4>Flight Code</h4>
+         <div class="form-row">
+          <div class="form-group"><label>Select Flight Code</label> <select id="reschedule-departure-flight-code-select"> <option value="">Select airline first</option> </select>
+          </div>
+          <div class="form-group"><label>Or Enter Custom Code</label> <input type="text" id="reschedule-departure-custom-flight-code" placeholder="e.g., 5A999">
+          </div>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Route</h4>
+         <div class="radio-group"><label> <input type="radio" name="reschedule-departure-route" value="BOR-VTE"> BOR → VTE </label> <label> <input type="radio" name="reschedule-departure-route" value="BOR-LPQ"> BOR → LPQ </label>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Original Date</h4><input type="date" id="reschedule-departure-original-date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px;">
+        </div>
+        <div class="form-section">
+         <h4>New Date</h4><input type="date" id="reschedule-departure-new-date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px;">
+        </div>
+        <div class="form-section">
+         <h4>New Time</h4>
+         <div class="time-inputs"><input type="text" id="reschedule-departure-start-time" placeholder="08h:00mn"> <span>to</span> <input type="text" id="reschedule-departure-end-time" placeholder="10h:30mn">
+         </div>
+        </div>
+       </div>
+      </div><button class="submit-btn" id="change-btn"> <span>🔄</span> Change Schedule </button>
+     </div>
+     <div class="special-flight-form" id="special-flight-form" style="display: none;">
+      <h3><span>✨</span> Charter &amp; Additional Flight Details</h3>
+      <div class="flight-columns">
+       <div class="flight-column-container">
+        <div class="column-header">
+         <h3><span>🛬</span> Arrival Special Flight</h3>
+        </div>
+        <div class="form-section">
+         <h4>Flight Code</h4>
+         <div class="form-row">
+          <div class="form-group"><label>Select Flight Code</label> <select id="special-arrival-flight-code-select"> <option value="">Select airline first</option> </select>
+          </div>
+          <div class="form-group"><label>Or Enter Custom Code</label> <input type="text" id="special-arrival-custom-flight-code" placeholder="e.g., 5A999">
+          </div>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Route</h4>
+         <div class="radio-group"><label> <input type="radio" name="special-arrival-route" value="VTE-BOR"> VTE → BOR </label> <label> <input type="radio" name="special-arrival-route" value="LPQ-BOR"> LPQ → BOR </label>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Flight Date</h4><input type="date" id="special-arrival-date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px;">
+        </div>
+        <div class="form-section">
+         <h4>Flight Time</h4>
+         <div class="time-inputs"><input type="text" id="special-arrival-start-time" placeholder="08h:00mn"> <span>to</span> <input type="text" id="special-arrival-end-time" placeholder="10h:30mn">
+         </div>
+        </div>
+       </div>
+       <div class="flight-column-container">
+        <div class="column-header">
+         <h3><span>🛫</span> Departure Special Flight</h3>
+        </div>
+        <div class="form-section">
+         <h4>Flight Code</h4>
+         <div class="form-row">
+          <div class="form-group"><label>Select Flight Code</label> <select id="special-departure-flight-code-select"> <option value="">Select airline first</option> </select>
+          </div>
+          <div class="form-group"><label>Or Enter Custom Code</label> <input type="text" id="special-departure-custom-flight-code" placeholder="e.g., 5A999">
+          </div>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Route</h4>
+         <div class="radio-group"><label> <input type="radio" name="special-departure-route" value="BOR-VTE"> BOR → VTE </label> <label> <input type="radio" name="special-departure-route" value="BOR-LPQ"> BOR → LPQ </label>
+         </div>
+        </div>
+        <div class="form-section">
+         <h4>Flight Date</h4><input type="date" id="special-departure-date" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px;">
+        </div>
+        <div class="form-section">
+         <h4>Flight Time</h4>
+         <div class="time-inputs"><input type="text" id="special-departure-start-time" placeholder="08h:00mn"> <span>to</span> <input type="text" id="special-departure-end-time" placeholder="10h:30mn">
+         </div>
+        </div>
+       </div>
+      </div><button class="submit-btn" id="add-more-btn"> <span>➕</span> Add More </button>
+     </div>
+     <div class="success-message" id="special-success-message">
+      ✓ Special flight added successfully!
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="modal" id="login-modal">
+   <div class="modal-content">
+    <h2>Secure Portal Login</h2>
+    <div class="form-group"><label>Employee Name</label> <input type="text" id="employee-name" placeholder="Enter your name">
+    </div>
+    <div class="form-group"><label>Employee ID</label> <input type="text" id="employee-id" placeholder="BKIA####">
+     <div class="error-message" id="id-error" style="display: none;">
+      ID must start with BKIA followed by 4 digits
+     </div>
+    </div>
+    <div class="modal-buttons"><button class="btn-secondary" id="cancel-login">Cancel</button> <button class="btn-primary" id="confirm-login">Login</button>
+    </div>
+   </div>
+  </div>
+  <script>
+    let isAuthenticated = false;
+    let allFlights = [];
+    let currentMonth = 'November';
+    let currentViewDate = new Date();
+    
+    // Set default to yesterday
+    currentViewDate.setDate(currentViewDate.getDate() - 1);
+
+    const flightCodes = {
+      'Lanexang Airways International': ['5A288', '5A289', '5A286', '5A287', '5A281', '5A282', '5A211', '5A212'],
+      'Lao Skyways': ['LK248', 'LK249'],
+      'Lao Airlines': ['QV901', 'QV902']
+    };
+
+    const airlineColors = {
+      'Lanexang Airways International': 'flight-lanexang',
+      'Lao Skyways': 'flight-skyways',
+      'Lao Airlines': 'flight-lao'
+    };
+
+    // Sample flight data for demonstration
+    function initSampleData() {
+      allFlights = [
+        // Lanexang Airways - Regular flights
+        { id: '1', airline: 'Lanexang Airways International', flight_code: '5A288', route: 'VTE-BOR', status: 'Regular', day_of_week: 'Mon', start_time: '08h:00mn', end_time: '09h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '2', airline: 'Lanexang Airways International', flight_code: '5A289', route: 'BOR-VTE', status: 'Regular', day_of_week: 'Mon', start_time: '10h:00mn', end_time: '11h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '3', airline: 'Lanexang Airways International', flight_code: '5A288', route: 'VTE-BOR', status: 'Regular', day_of_week: 'Wed', start_time: '08h:00mn', end_time: '09h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '4', airline: 'Lanexang Airways International', flight_code: '5A289', route: 'BOR-VTE', status: 'Regular', day_of_week: 'Wed', start_time: '10h:00mn', end_time: '11h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '5', airline: 'Lanexang Airways International', flight_code: '5A288', route: 'VTE-BOR', status: 'Regular', day_of_week: 'Fri', start_time: '08h:00mn', end_time: '09h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '6', airline: 'Lanexang Airways International', flight_code: '5A289', route: 'BOR-VTE', status: 'Regular', day_of_week: 'Fri', start_time: '10h:00mn', end_time: '11h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        
+        // Lao Skyways - Regular flights
+        { id: '7', airline: 'Lao Skyways', flight_code: 'LK248', route: 'LPQ-BOR', status: 'Regular', day_of_week: 'Tue', start_time: '14h:00mn', end_time: '15h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '8', airline: 'Lao Skyways', flight_code: 'LK249', route: 'BOR-LPQ', status: 'Regular', day_of_week: 'Tue', start_time: '16h:00mn', end_time: '17h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '9', airline: 'Lao Skyways', flight_code: 'LK248', route: 'LPQ-BOR', status: 'Regular', day_of_week: 'Thu', start_time: '14h:00mn', end_time: '15h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '10', airline: 'Lao Skyways', flight_code: 'LK249', route: 'BOR-LPQ', status: 'Regular', day_of_week: 'Thu', start_time: '16h:00mn', end_time: '17h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        
+        // Lao Airlines - Regular flights
+        { id: '11', airline: 'Lao Airlines', flight_code: 'QV901', route: 'VTE-BOR', status: 'Regular', day_of_week: 'Sat', start_time: '12h:00mn', end_time: '13h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        { id: '12', airline: 'Lao Airlines', flight_code: 'QV902', route: 'BOR-VTE', status: 'Regular', day_of_week: 'Sat', start_time: '14h:00mn', end_time: '15h:30mn', date: '', month: 'November', year: '2025', original_date: '', color: '' },
+        
+        // Special flights for today's updates
+        { id: '13', airline: 'Lanexang Airways International', flight_code: '5A288', route: 'VTE-BOR', status: 'Reschedule', day_of_week: '', start_time: '09h:00mn', end_time: '10h:30mn', date: '2024-12-19', month: 'December', year: '2025', original_date: '2024-12-19', color: '' },
+        { id: '14', airline: 'Lao Skyways', flight_code: 'LK999', route: 'LPQ-BOR', status: 'Charter', day_of_week: '', start_time: '18h:00mn', end_time: '19h:30mn', date: '2024-12-19', month: 'December', year: '2025', original_date: '', color: '' },
+        { id: '15', airline: 'Lao Airlines', flight_code: 'QV555', route: 'BOR-VTE', status: 'Additional', day_of_week: '', start_time: '20h:00mn', end_time: '21h:30mn', date: '2024-12-19', month: 'December', year: '2025', original_date: '', color: '' }
+      ];
+      
+      updateLastUpdated();
+      renderCalendar();
+      renderTodayUpdates();
+    }
+
+    function initApp() {
+      initSampleData();
+    }
+
+    function updateLastUpdated() {
+      const now = new Date();
+      const formatted = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      document.getElementById('last-updated').textContent = `Latest Updated on: ${formatted}`;
+    }
+
+    function getDaysInMonth(month, year) {
+      const monthIndex = month === 'November' ? 10 : 11;
+      return new Date(year, monthIndex + 1, 0).getDate();
+    }
+
+    function getDayName(date) {
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return days[date.getDay()];
+    }
+
+    function updateCurrentDateDisplay() {
+      const currentMonth = currentViewDate.getMonth();
+      const currentYear = currentViewDate.getFullYear();
+      const daysInMonth = getDaysInMonth(currentMonth === 10 ? 'November' : 'December', currentYear);
+      const startDay = currentViewDate.getDate();
+      
+      const startDate = new Date(currentYear, currentMonth, startDay);
+      const endDate = new Date(currentYear, currentMonth, daysInMonth);
+      
+      const startOptions = { month: 'long', day: 'numeric' };
+      const endOptions = { month: 'long', day: 'numeric', year: 'numeric' };
+      
+      const startStr = startDate.toLocaleDateString('en-US', startOptions);
+      const endStr = endDate.toLocaleDateString('en-US', endOptions);
+      
+      document.getElementById('current-date-display').textContent = `${startStr} - ${endStr}`;
+      
+      // Update navigation buttons
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      
+      // Check if we can go back (minimum is November 1, 2025)
+      const minDate = new Date(2025, 10, 1); // November 1, 2025
+      const canGoBack = startDate > minDate;
+      
+      // Check if we can go forward (maximum is end of December 2025)
+      const maxDate = new Date(2025, 11, 31); // December 31, 2025
+      const canGoForward = startDate < maxDate;
+      
+      if (prevBtn) {
+        prevBtn.disabled = !canGoBack;
+      }
+      if (nextBtn) {
+        nextBtn.disabled = !canGoForward;
+      }
+    }
+
+    function renderCalendar() {
+      const thead = document.getElementById('calendar-header');
+      const tbody = document.getElementById('calendar-body');
+      
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      updateCurrentDateDisplay();
+
+      const routeFilter = Array.from(document.getElementById('filter-route').selectedOptions).map(o => o.value).filter(v => v);
+      const airlineFilter = Array.from(document.getElementById('filter-airline').selectedOptions).map(o => o.value).filter(v => v);
+      const dayFilter = Array.from(document.getElementById('filter-day').selectedOptions).map(o => o.value).filter(v => v);
+
+      // Create table header
+      const headerRow = document.createElement('tr');
+      const timeHeader = document.createElement('th');
+      timeHeader.textContent = 'Time';
+      timeHeader.classList.add('time-slot');
+      headerRow.appendChild(timeHeader);
+
+      // Create columns for dates from start day to end of month
+      const today = new Date();
+      const currentMonth = currentViewDate.getMonth();
+      const currentYear = currentViewDate.getFullYear();
+      const daysInMonth = getDaysInMonth(currentMonth === 10 ? 'November' : 'December', currentYear);
+      
+      const startDay = currentViewDate.getDate();
+      const displayDays = [];
+      
+      // Create list of days to display (from start day to end of month)
+      for (let day = startDay; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        displayDays.push(date);
+      }
+
+      // Create header columns for each day
+      displayDays.forEach(date => {
+        const dayName = getDayName(date);
+        const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        const th = document.createElement('th');
+        th.textContent = `${dateStr}\n${dayName}`;
+        th.style.whiteSpace = 'pre-line';
+        th.style.fontSize = '14px';
+        th.classList.add('flight-column');
+        
+        const todayDateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (dateStr === todayDateStr) {
+          th.classList.add('today-header');
+        }
+        
+        headerRow.appendChild(th);
+      });
+      
+      thead.appendChild(headerRow);
+
+      // Collect all time slots from flights in the displayed date range
+      const allTimeSlots = new Set();
+      const flightMonth = currentMonth === 10 ? 'November' : 'December';
+      
+      displayDays.forEach(date => {
+        const dayName = getDayName(date);
+        const fullDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        
+        allFlights.forEach(flight => {
+          if (flight.month === flightMonth) {
+            let includeThisFlight = false;
+            
+            if (flight.status === 'Regular') {
+              includeThisFlight = flight.day_of_week === dayName;
+            } else {
+              includeThisFlight = flight.date === fullDateStr;
+            }
+            
+            if (includeThisFlight) {
+              const timeSlot = `${flight.start_time} - ${flight.end_time}`;
+              allTimeSlots.add(timeSlot);
+            }
+          }
+        });
+      });
+
+      // Sort time slots
+      const sortedTimeSlots = Array.from(allTimeSlots).sort((a, b) => {
+        const timeA = a.split(' - ')[0].replace('h', ':').replace('mn', '');
+        const timeB = b.split(' - ')[0].replace('h', ':').replace('mn', '');
+        return timeA.localeCompare(timeB);
+      });
+
+      // Create rows for each time slot
+      sortedTimeSlots.forEach(timeSlot => {
+        const row = document.createElement('tr');
+        
+        // Time column
+        const timeCell = document.createElement('td');
+        timeCell.classList.add('time-slot');
+        timeCell.textContent = timeSlot;
+        timeCell.style.fontSize = '12px';
+        timeCell.style.lineHeight = '1.2';
+        row.appendChild(timeCell);
+
+        // Create columns for each day
+        displayDays.forEach(date => {
+          const dayName = getDayName(date);
+          const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+          const fullDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          
+          const cell = document.createElement('td');
+          cell.classList.add('flight-column');
+          
+          const todayDateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+          
+          if (dateStr === todayDateStr) {
+            cell.classList.add('today-column');
+          }
+
+          // Find flights in this time slot for this day
+          const dayFlights = allFlights.filter(flight => {
+            if (flight.month !== flightMonth) return false;
+            const flightTimeSlot = `${flight.start_time} - ${flight.end_time}`;
+            if (flightTimeSlot !== timeSlot) return false;
+            
+            if (flight.status === 'Regular') {
+              return flight.day_of_week === dayName;
+            } else {
+              return flight.date === fullDateStr;
+            }
+          });
+
+          const filteredFlights = dayFlights.filter(flight => {
+            if (routeFilter.length > 0 && !routeFilter.includes(flight.route)) return false;
+            if (airlineFilter.length > 0 && !airlineFilter.includes(flight.airline)) return false;
+            if (dayFilter.length > 0 && !dayFilter.includes(dayName)) return false;
+            return true;
+          });
+
+          // Display flights
+          filteredFlights.forEach(flight => {
+            const flightDiv = document.createElement('div');
+            flightDiv.classList.add('flight-item');
+            
+            let colorClass = airlineColors[flight.airline] || 'flight-regular';
+            let airlineIcon = '✈️';
+            
+            // Check if this Regular flight has been rescheduled
+            if (flight.status === 'Regular') {
+              const hasReschedule = allFlights.some(otherFlight => 
+                otherFlight.status === 'Reschedule' &&
+                otherFlight.flight_code === flight.flight_code &&
+                otherFlight.route === flight.route &&
+                otherFlight.date === fullDateStr &&
+                otherFlight.month === flightMonth
+              );
+              
+              if (hasReschedule) {
+                colorClass = 'flight-cancelled';
+              }
+            } else if (flight.status === 'Reschedule') {
+              colorClass = 'flight-reschedule';
+            } else if (flight.status === 'Charter') {
+              colorClass = 'flight-charter';
+            } else if (flight.status === 'Additional') {
+              colorClass = 'flight-additional';
+            } else if (flight.color === 'cancelled') {
+              colorClass = 'flight-cancelled';
+            }
+            
+            flightDiv.classList.add(colorClass);
+            flightDiv.innerHTML = `<div style="font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 4px; justify-content: center;"><span style="font-size: 10px;">${airlineIcon}</span>${flight.flight_code}</div><div style="font-size: 10px; margin-top: 2px;">${flight.route}</div>`;
+            flightDiv.title = `${flight.flight_code} ${flight.route} (${flight.start_time}-${flight.end_time}) - ${flight.airline}`;
+            
+            if (isAuthenticated) {
+              flightDiv.onclick = () => deleteFlight(flight);
+              flightDiv.style.cursor = 'pointer';
+            } else {
+              flightDiv.style.cursor = 'default';
+            }
+            
+            cell.appendChild(flightDiv);
+          });
+
+          row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+      });
+
+      // If no flights, show message
+      if (sortedTimeSlots.length === 0) {
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.colSpan = displayDays.length + 1;
+        emptyCell.innerHTML = `
+          <div style="text-align: center; padding: 60px 20px; color: #64748b;">
+            <div style="font-size: 48px; margin-bottom: 16px;">✈️</div>
+            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No flights scheduled for this period</div>
+          </div>
+        `;
+        emptyRow.appendChild(emptyCell);
+        tbody.appendChild(emptyRow);
+      }
+    }
+
+    let selectedUpdatesDate = new Date(); // Default to today
+
+    function renderTodayUpdates() {
+      // Use selected date for updates, default to today
+      const viewDate = selectedUpdatesDate;
+      const viewDateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(viewDate.getDate()).padStart(2, '0')}`;
+      const viewMonth = viewDate.getMonth() === 10 ? 'November' : 'December';
+      const viewDayName = getDayName(viewDate);
+
+      // Collect special flights for selected date
+      const dayFlights = allFlights.filter(flight => {
+        if (flight.month !== viewMonth) return false;
+        
+        if (flight.status === 'Regular') {
+          return false; // Don't show regular flights in updates
+        } else {
+          return flight.date === viewDateStr;
+        }
+      });
+
+      const reschedules = dayFlights.filter(f => f.status === 'Reschedule');
+      const charters = dayFlights.filter(f => f.status === 'Charter');
+      const additionals = dayFlights.filter(f => f.status === 'Additional');
+
+      if (reschedules.length === 0 && charters.length === 0 && additionals.length === 0) {
+        document.getElementById('updates-section').style.display = 'block';
+        const content = document.getElementById('updates-content');
+        content.innerHTML = `
+          <div class="no-updates">
+            <span class="no-updates-icon">🎉</span>
+            <div class="no-updates-text">No flight updates for this date</div>
+          </div>
+        `;
+        return;
+      }
+
+      document.getElementById('updates-section').style.display = 'block';
+      const content = document.getElementById('updates-content');
+      content.innerHTML = '';
+
+      // Update section title to show selected date
+      const sectionTitle = document.getElementById('updates-title');
+      if (sectionTitle) {
+        const today = new Date();
+        const isToday = viewDateStr === `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const dateStr = viewDate.toLocaleDateString('en-US', { 
+          weekday: 'long',
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        
+        if (isToday) {
+          sectionTitle.innerHTML = `<span>⚠️</span>Today's Flight Updates`;
+        } else {
+          sectionTitle.innerHTML = `<span>⚠️</span>Flight Updates - ${dateStr}`;
+        }
+      }
+
+      if (reschedules.length > 0) {
+        const category = document.createElement('div');
+        category.classList.add('update-category');
+        category.innerHTML = '<h4><span>🔄</span>Rescheduled Flights</h4>';
+        reschedules.forEach(flight => {
+          const item = document.createElement('div');
+          item.classList.add('update-item');
+          
+          const mainDiv = document.createElement('div');
+          mainDiv.classList.add('update-item-main');
+          
+          const icon = document.createElement('span');
+          icon.classList.add('update-item-icon');
+          icon.textContent = '⏰';
+          
+          const content = document.createElement('div');
+          content.classList.add('update-item-content');
+          content.innerHTML = `
+            <span class="update-item-flight">${flight.flight_code}</span> ${flight.route} - New time: <span class="update-item-time">${flight.start_time}-${flight.end_time}</span>
+          `;
+          
+          mainDiv.appendChild(icon);
+          mainDiv.appendChild(content);
+          item.appendChild(mainDiv);
+          
+          if (flight.original_date) {
+            const originalDate = new Date(flight.original_date);
+            const originalDateStr = originalDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const details = document.createElement('div');
+            details.classList.add('update-item-details');
+            details.innerHTML = `📅 Originally scheduled for ${originalDateStr}`;
+            item.appendChild(details);
+          }
+          
+          category.appendChild(item);
+        });
+        content.appendChild(category);
+      }
+
+      if (charters.length > 0) {
+        const category = document.createElement('div');
+        category.classList.add('update-category');
+        category.innerHTML = '<h4><span>🛩️</span>Charter Flights</h4>';
+        charters.forEach(flight => {
+          const item = document.createElement('div');
+          item.classList.add('update-item');
+          
+          const mainDiv = document.createElement('div');
+          mainDiv.classList.add('update-item-main');
+          
+          const icon = document.createElement('span');
+          icon.classList.add('update-item-icon');
+          icon.textContent = '🎯';
+          
+          const content = document.createElement('div');
+          content.classList.add('update-item-content');
+          content.innerHTML = `
+            <span class="update-item-flight">${flight.flight_code}</span> ${flight.route} - <span class="update-item-time">${flight.start_time}-${flight.end_time}</span>
+          `;
+          
+          mainDiv.appendChild(icon);
+          mainDiv.appendChild(content);
+          item.appendChild(mainDiv);
+          
+          category.appendChild(item);
+        });
+        content.appendChild(category);
+      }
+
+      if (additionals.length > 0) {
+        const category = document.createElement('div');
+        category.classList.add('update-category');
+        category.innerHTML = '<h4><span>➕</span>Additional Flights</h4>';
+        additionals.forEach(flight => {
+          const item = document.createElement('div');
+          item.classList.add('update-item');
+          
+          const mainDiv = document.createElement('div');
+          mainDiv.classList.add('update-item-main');
+          
+          const icon = document.createElement('span');
+          icon.classList.add('update-item-icon');
+          icon.textContent = '🆕';
+          
+          const content = document.createElement('div');
+          content.classList.add('update-item-content');
+          content.innerHTML = `
+            <span class="update-item-flight">${flight.flight_code}</span> ${flight.route} - <span class="update-item-time">${flight.start_time}-${flight.end_time}</span>
+          `;
+          
+          mainDiv.appendChild(icon);
+          mainDiv.appendChild(content);
+          item.appendChild(mainDiv);
+          
+          category.appendChild(item);
+        });
+        content.appendChild(category);
+      }
+    }
+
+    function deleteFlight(flight) {
+      if (!isAuthenticated) return;
+      
+      // Create inline confirmation
+      const flightElement = event.target.closest('.flight-item');
+      if (!flightElement) return;
+      
+      const originalContent = flightElement.innerHTML;
+      flightElement.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 4px;">
+          <button onclick="confirmDelete('${flight.id}')" style="padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 600;">Confirm Delete</button>
+          <button onclick="cancelDelete(this, \`${originalContent.replace(/`/g, '\\`')}\`)" style="padding: 4px 8px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 600;">Cancel</button>
+        </div>
+      `;
+    }
+
+    window.confirmDelete = function(flightId) {
+      allFlights = allFlights.filter(f => f.id !== flightId);
+      updateLastUpdated();
+      renderCalendar();
+      renderTodayUpdates();
+      
+      // Show success message
+      const msg = document.createElement('div');
+      msg.className = 'success-message show';
+      msg.textContent = '✓ Flight deleted successfully!';
+      msg.style.position = 'fixed';
+      msg.style.top = '20px';
+      msg.style.right = '20px';
+      msg.style.zIndex = '9999';
+      document.body.appendChild(msg);
+      setTimeout(() => {
+        msg.remove();
+      }, 3000);
+    };
+
+    window.cancelDelete = function(button, originalContent) {
+      const flightElement = button.closest('.flight-item');
+      if (flightElement) {
+        flightElement.innerHTML = originalContent;
+      }
+    };
+
+    document.getElementById('portal-btn').onclick = () => {
+      document.getElementById('login-modal').classList.add('active');
+    };
+
+    document.getElementById('cancel-login').onclick = () => {
+      document.getElementById('login-modal').classList.remove('active');
+      document.getElementById('employee-name').value = '';
+      document.getElementById('employee-id').value = '';
+      document.getElementById('id-error').style.display = 'none';
+    };
+
+    document.getElementById('confirm-login').onclick = () => {
+      const name = document.getElementById('employee-name').value.trim();
+      const id = document.getElementById('employee-id').value.trim();
+      const idPattern = /^BKIA\d{4}$/;
+
+      if (!name || !id) {
+        return;
+      }
+
+      if (!idPattern.test(id)) {
+        document.getElementById('id-error').style.display = 'block';
+        return;
+      }
+
+      isAuthenticated = true;
+      document.getElementById('login-modal').classList.remove('active');
+      
+      // Show admin tabs
+      document.getElementById('add-flight-tab').style.display = 'flex';
+      document.getElementById('special-flight-tab').style.display = 'flex';
+      
+      // Show logout button, hide login button
+      document.getElementById('portal-btn').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'flex';
+      
+      document.getElementById('employee-name').value = '';
+      document.getElementById('employee-id').value = '';
+      document.getElementById('id-error').style.display = 'none';
+      
+      // Re-render calendar to enable delete functionality
+      renderCalendar();
+    };
+
+    function setupTabHandlers() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.onclick = () => {
+          const tabName = tab.dataset.tab;
+          
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          tab.classList.add('active');
+          if (tabName === 'calendar') {
+            document.getElementById('calendar-tab').classList.add('active');
+          } else if (tabName === 'add-flight') {
+            document.getElementById('add-flight-tab-content').classList.add('active');
+          } else if (tabName === 'special-flight') {
+            document.getElementById('special-flight-tab-content').classList.add('active');
+          }
+        };
+      });
+    }
+    
+    setupTabHandlers();
+
+    document.getElementById('logout-btn').onclick = () => {
+      isAuthenticated = false;
+      
+      // Hide admin tabs
+      document.getElementById('add-flight-tab').style.display = 'none';
+      document.getElementById('special-flight-tab').style.display = 'none';
+      
+      // Switch to calendar view
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('.tab[data-tab="calendar"]').classList.add('active');
+      document.getElementById('calendar-tab').classList.add('active');
+      
+      // Show login button, hide logout button
+      document.getElementById('portal-btn').style.display = 'flex';
+      document.getElementById('logout-btn').style.display = 'none';
+      
+      // Re-render calendar to remove delete functionality
+      renderCalendar();
+    };
+
+    document.getElementById('month-select').onchange = (e) => {
+      currentMonth = e.target.value;
+      // Reset to yesterday when changing month
+      currentViewDate = new Date();
+      currentViewDate.setDate(currentViewDate.getDate() - 1);
+      if (currentMonth === 'December') {
+        currentViewDate.setMonth(11); // December
+      } else {
+        currentViewDate.setMonth(10); // November
+      }
+      renderCalendar();
+      renderTodayUpdates();
+    };
+
+    document.getElementById('filter-route').onchange = renderCalendar;
+    document.getElementById('filter-airline').onchange = renderCalendar;
+    document.getElementById('filter-day').onchange = renderCalendar;
+
+    document.querySelectorAll('input[name="airline"]').forEach(radio => {
+      radio.onchange = (e) => {
+        const airline = e.target.value;
+        
+        // Update flight code selects for regular flights
+        const selects = [
+          'arrival-flight-code-select',
+          'departure-flight-code-select'
+        ];
+        
+        selects.forEach(selectId => {
+          const select = document.getElementById(selectId);
+          if (select) {
+            select.innerHTML = '<option value="">Select flight code</option>';
+            
+            if (flightCodes[airline]) {
+              flightCodes[airline].forEach(code => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = code;
+                select.appendChild(option);
+              });
+            }
+            
+            const otherOption = document.createElement('option');
+            otherOption.value = 'other';
+            otherOption.textContent = 'Other (Custom)';
+            select.appendChild(otherOption);
+          }
+        });
+      };
+    });
+
+    // Handle special airline selection
+    document.querySelectorAll('input[name="special-airline"]').forEach(radio => {
+      radio.onchange = (e) => {
+        const airline = e.target.value;
+        
+        // Update flight code selects for special flights
+        const selects = [
+          'reschedule-arrival-flight-code-select',
+          'reschedule-departure-flight-code-select',
+          'special-arrival-flight-code-select',
+          'special-departure-flight-code-select'
+        ];
+        
+        selects.forEach(selectId => {
+          const select = document.getElementById(selectId);
+          if (select) {
+            select.innerHTML = '<option value="">Select flight code</option>';
+            
+            if (flightCodes[airline]) {
+              flightCodes[airline].forEach(code => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = code;
+                select.appendChild(option);
+              });
+            }
+            
+            const otherOption = document.createElement('option');
+            otherOption.value = 'other';
+            otherOption.textContent = 'Other (Custom)';
+            select.appendChild(otherOption);
+          }
+        });
+      };
+    });
+
+    // Handle special flight type selection
+    document.querySelectorAll('input[name="special-type"]').forEach(radio => {
+      radio.onchange = (e) => {
+        const type = e.target.value;
+        document.getElementById('reschedule-form-special').style.display = type === 'Reschedule' ? 'block' : 'none';
+        document.getElementById('special-flight-form').style.display = (type === 'Charter' || type === 'Additional') ? 'block' : 'none';
+      };
+    });
+
+    document.getElementById('add-flight-btn').onclick = () => {
+      if (!isAuthenticated) return;
+      
+      const airline = document.querySelector('input[name="airline"]:checked')?.value;
+      if (!airline) {
+        showMessage('success-message', '⚠️ Please select an airline', '#f59e0b');
+        return;
+      }
+      
+      // Get arrival flight data
+      const arrivalCode = document.getElementById('arrival-custom-flight-code').value.trim() || 
+                         document.getElementById('arrival-flight-code-select').value;
+      const arrivalRoute = document.querySelector('input[name="arrival-route"]:checked')?.value;
+      const arrivalStartTime = document.getElementById('arrival-start-time').value.trim();
+      const arrivalEndTime = document.getElementById('arrival-end-time').value.trim();
+      const arrivalDays = Array.from(document.querySelectorAll('input[name="arrival-days"]:checked')).map(cb => cb.value);
+      
+      // Get departure flight data
+      const departureCode = document.getElementById('departure-custom-flight-code').value.trim() || 
+                           document.getElementById('departure-flight-code-select').value;
+      const departureRoute = document.querySelector('input[name="departure-route"]:checked')?.value;
+      const departureStartTime = document.getElementById('departure-start-time').value.trim();
+      const departureEndTime = document.getElementById('departure-end-time').value.trim();
+      const departureDays = Array.from(document.querySelectorAll('input[name="departure-days"]:checked')).map(cb => cb.value);
+      
+      let addedCount = 0;
+      
+      // Add arrival flights
+      if (arrivalCode && arrivalRoute && arrivalStartTime && arrivalEndTime && arrivalDays.length > 0) {
+        arrivalDays.forEach(day => {
+          const newFlight = {
+            id: Date.now().toString() + Math.random(),
+            airline: airline,
+            flight_code: arrivalCode,
+            route: arrivalRoute,
+            status: 'Regular',
+            day_of_week: day,
+            start_time: arrivalStartTime,
+            end_time: arrivalEndTime,
+            date: '',
+            month: currentMonth,
+            year: '2025',
+            original_date: '',
+            color: ''
+          };
+          allFlights.push(newFlight);
+          addedCount++;
+        });
+      }
+      
+      // Add departure flights
+      if (departureCode && departureRoute && departureStartTime && departureEndTime && departureDays.length > 0) {
+        departureDays.forEach(day => {
+          const newFlight = {
+            id: Date.now().toString() + Math.random(),
+            airline: airline,
+            flight_code: departureCode,
+            route: departureRoute,
+            status: 'Regular',
+            day_of_week: day,
+            start_time: departureStartTime,
+            end_time: departureEndTime,
+            date: '',
+            month: currentMonth,
+            year: '2025',
+            original_date: '',
+            color: ''
+          };
+          allFlights.push(newFlight);
+          addedCount++;
+        });
+      }
+      
+      if (addedCount > 0) {
+        updateLastUpdated();
+        renderCalendar();
+        renderTodayUpdates();
+        showMessage('success-message', `✓ ${addedCount} flight(s) added successfully!`, '#14b8a6');
+        
+        // Clear form
+        document.querySelectorAll('input[name="airline"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="arrival-route"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="departure-route"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="arrival-days"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('input[name="departure-days"]').forEach(cb => cb.checked = false);
+        document.getElementById('arrival-custom-flight-code').value = '';
+        document.getElementById('departure-custom-flight-code').value = '';
+        document.getElementById('arrival-start-time').value = '';
+        document.getElementById('arrival-end-time').value = '';
+        document.getElementById('departure-start-time').value = '';
+        document.getElementById('departure-end-time').value = '';
+      } else {
+        showMessage('success-message', '⚠️ Please fill in all required fields', '#f59e0b');
+      }
+    };
+
+    document.getElementById('change-btn').onclick = () => {
+      if (!isAuthenticated) return;
+      
+      const airline = document.querySelector('input[name="special-airline"]:checked')?.value;
+      if (!airline) {
+        showMessage('special-success-message', '⚠️ Please select an airline', '#f59e0b');
+        return;
+      }
+      
+      // Get arrival reschedule data
+      const arrivalCode = document.getElementById('reschedule-arrival-custom-flight-code').value.trim() || 
+                         document.getElementById('reschedule-arrival-flight-code-select').value;
+      const arrivalRoute = document.querySelector('input[name="reschedule-arrival-route"]:checked')?.value;
+      const arrivalOriginalDate = document.getElementById('reschedule-arrival-original-date').value;
+      const arrivalNewDate = document.getElementById('reschedule-arrival-new-date').value;
+      const arrivalStartTime = document.getElementById('reschedule-arrival-start-time').value.trim();
+      const arrivalEndTime = document.getElementById('reschedule-arrival-end-time').value.trim();
+      
+      // Get departure reschedule data
+      const departureCode = document.getElementById('reschedule-departure-custom-flight-code').value.trim() || 
+                           document.getElementById('reschedule-departure-flight-code-select').value;
+      const departureRoute = document.querySelector('input[name="reschedule-departure-route"]:checked')?.value;
+      const departureOriginalDate = document.getElementById('reschedule-departure-original-date').value;
+      const departureNewDate = document.getElementById('reschedule-departure-new-date').value;
+      const departureStartTime = document.getElementById('reschedule-departure-start-time').value.trim();
+      const departureEndTime = document.getElementById('reschedule-departure-end-time').value.trim();
+      
+      let addedCount = 0;
+      
+      // Add arrival reschedule
+      if (arrivalCode && arrivalRoute && arrivalNewDate && arrivalStartTime && arrivalEndTime) {
+        const newDate = new Date(arrivalNewDate);
+        const newFlight = {
+          id: Date.now().toString() + Math.random(),
+          airline: airline,
+          flight_code: arrivalCode,
+          route: arrivalRoute,
+          status: 'Reschedule',
+          day_of_week: '',
+          start_time: arrivalStartTime,
+          end_time: arrivalEndTime,
+          date: arrivalNewDate,
+          month: newDate.getMonth() === 10 ? 'November' : 'December',
+          year: '2025',
+          original_date: arrivalOriginalDate || arrivalNewDate,
+          color: ''
+        };
+        allFlights.push(newFlight);
+        addedCount++;
+      }
+      
+      // Add departure reschedule
+      if (departureCode && departureRoute && departureNewDate && departureStartTime && departureEndTime) {
+        const newDate = new Date(departureNewDate);
+        const newFlight = {
+          id: Date.now().toString() + Math.random(),
+          airline: airline,
+          flight_code: departureCode,
+          route: departureRoute,
+          status: 'Reschedule',
+          day_of_week: '',
+          start_time: departureStartTime,
+          end_time: departureEndTime,
+          date: departureNewDate,
+          month: newDate.getMonth() === 10 ? 'November' : 'December',
+          year: '2025',
+          original_date: departureOriginalDate || departureNewDate,
+          color: ''
+        };
+        allFlights.push(newFlight);
+        addedCount++;
+      }
+      
+      if (addedCount > 0) {
+        updateLastUpdated();
+        renderCalendar();
+        renderTodayUpdates();
+        showMessage('special-success-message', `✓ ${addedCount} reschedule(s) added successfully!`, '#14b8a6');
+        
+        // Clear form
+        document.querySelectorAll('input[name="special-airline"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="special-type"]').forEach(r => r.checked = false);
+        document.getElementById('reschedule-form-special').style.display = 'none';
+      } else {
+        showMessage('special-success-message', '⚠️ Please fill in all required fields', '#f59e0b');
+      }
+    };
+
+    document.getElementById('add-more-btn').onclick = () => {
+      if (!isAuthenticated) return;
+      
+      const airline = document.querySelector('input[name="special-airline"]:checked')?.value;
+      const specialType = document.querySelector('input[name="special-type"]:checked')?.value;
+      
+      if (!airline || !specialType) {
+        showMessage('special-success-message', '⚠️ Please select airline and flight type', '#f59e0b');
+        return;
+      }
+      
+      // Get arrival special flight data
+      const arrivalCode = document.getElementById('special-arrival-custom-flight-code').value.trim() || 
+                         document.getElementById('special-arrival-flight-code-select').value;
+      const arrivalRoute = document.querySelector('input[name="special-arrival-route"]:checked')?.value;
+      const arrivalDate = document.getElementById('special-arrival-date').value;
+      const arrivalStartTime = document.getElementById('special-arrival-start-time').value.trim();
+      const arrivalEndTime = document.getElementById('special-arrival-end-time').value.trim();
+      
+      // Get departure special flight data
+      const departureCode = document.getElementById('special-departure-custom-flight-code').value.trim() || 
+                           document.getElementById('special-departure-flight-code-select').value;
+      const departureRoute = document.querySelector('input[name="special-departure-route"]:checked')?.value;
+      const departureDate = document.getElementById('special-departure-date').value;
+      const departureStartTime = document.getElementById('special-departure-start-time').value.trim();
+      const departureEndTime = document.getElementById('special-departure-end-time').value.trim();
+      
+      let addedCount = 0;
+      
+      // Add arrival special flight
+      if (arrivalCode && arrivalRoute && arrivalDate && arrivalStartTime && arrivalEndTime) {
+        const flightDate = new Date(arrivalDate);
+        const newFlight = {
+          id: Date.now().toString() + Math.random(),
+          airline: airline,
+          flight_code: arrivalCode,
+          route: arrivalRoute,
+          status: specialType,
+          day_of_week: '',
+          start_time: arrivalStartTime,
+          end_time: arrivalEndTime,
+          date: arrivalDate,
+          month: flightDate.getMonth() === 10 ? 'November' : 'December',
+          year: '2025',
+          original_date: '',
+          color: ''
+        };
+        allFlights.push(newFlight);
+        addedCount++;
+      }
+      
+      // Add departure special flight
+      if (departureCode && departureRoute && departureDate && departureStartTime && departureEndTime) {
+        const flightDate = new Date(departureDate);
+        const newFlight = {
+          id: Date.now().toString() + Math.random(),
+          airline: airline,
+          flight_code: departureCode,
+          route: departureRoute,
+          status: specialType,
+          day_of_week: '',
+          start_time: departureStartTime,
+          end_time: departureEndTime,
+          date: departureDate,
+          month: flightDate.getMonth() === 10 ? 'November' : 'December',
+          year: '2025',
+          original_date: '',
+          color: ''
+        };
+        allFlights.push(newFlight);
+        addedCount++;
+      }
+      
+      if (addedCount > 0) {
+        updateLastUpdated();
+        renderCalendar();
+        renderTodayUpdates();
+        showMessage('special-success-message', `✓ ${addedCount} ${specialType.toLowerCase()} flight(s) added successfully!`, '#14b8a6');
+        
+        // Clear form
+        document.querySelectorAll('input[name="special-airline"]').forEach(r => r.checked = false);
+        document.querySelectorAll('input[name="special-type"]').forEach(r => r.checked = false);
+        document.getElementById('special-flight-form').style.display = 'none';
+      } else {
+        showMessage('special-success-message', '⚠️ Please fill in all required fields', '#f59e0b');
+      }
+    };
+
+    function showMessage(elementId, message, bgColor) {
+      const msg = document.getElementById(elementId);
+      msg.style.background = bgColor;
+      msg.textContent = message;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 4000);
+    }
+
+    // Initialize date picker with today's date
+    function initDatePicker() {
+      const datePicker = document.getElementById('updates-date-picker');
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      datePicker.value = todayStr;
+      
+      datePicker.onchange = (e) => {
+        const selectedDate = new Date(e.target.value + 'T00:00:00');
+        selectedUpdatesDate = selectedDate;
+        renderTodayUpdates();
+      };
+      
+      document.getElementById('today-btn').onclick = () => {
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        datePicker.value = todayStr;
+        selectedUpdatesDate = today;
+        renderTodayUpdates();
+      };
+    }
+
+    // Navigation event handlers
+    document.getElementById('prev-btn').onclick = () => {
+      const currentDate = new Date(currentViewDate);
+      currentDate.setDate(currentDate.getDate() - 1);
+      
+      // Check minimum date (November 1, 2025)
+      const minDate = new Date(2025, 10, 1);
+      if (currentDate >= minDate) {
+        currentViewDate = currentDate;
+        
+        // Update month selector if needed
+        const newMonth = currentDate.getMonth() === 10 ? 'November' : 'December';
+        if (newMonth !== currentMonth) {
+          currentMonth = newMonth;
+          document.getElementById('month-select').value = currentMonth;
+        }
+        
+        renderCalendar();
+        renderTodayUpdates();
+      }
+    };
+
+    document.getElementById('next-btn').onclick = () => {
+      const currentDate = new Date(currentViewDate);
+      currentDate.setDate(currentDate.getDate() + 1);
+      
+      // Check maximum date (December 31, 2025)
+      const maxDate = new Date(2025, 11, 31);
+      if (currentDate <= maxDate) {
+        currentViewDate = currentDate;
+        
+        // Update month selector if needed
+        const newMonth = currentDate.getMonth() === 10 ? 'November' : 'December';
+        if (newMonth !== currentMonth) {
+          currentMonth = newMonth;
+          document.getElementById('month-select').value = currentMonth;
+        }
+        
+        renderCalendar();
+        renderTodayUpdates();
+      }
+    };
+
+    initApp();
+    initDatePicker();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c2bb63e6535065',t:'MTc2Mjc0ODE2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
